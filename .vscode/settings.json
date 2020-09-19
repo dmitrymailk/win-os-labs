@@ -1,0 +1,23 @@
+{
+  "files.associations": {
+    "*.hbs": "handlebars",
+    "*.html": "html",
+    "array": "cpp",
+    "chrono": "cpp",
+    "functional": "cpp",
+    "memory": "cpp",
+    "ratio": "cpp",
+    "tuple": "cpp",
+    "type_traits": "cpp",
+    "utility": "cpp",
+    "xmemory": "cpp",
+    "xtr1common": "cpp",
+    "xutility": "cpp",
+    "__functional_base": "cpp",
+    "__functional_base_03": "cpp",
+    "__hash_table": "cpp",
+    "__tuple": "cpp",
+    "algorithm": "cpp",
+    "limits": "cpp"
+  }
+}

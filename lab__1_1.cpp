@@ -119,7 +119,7 @@ int main()
   }
   else
   {
-    cout << "This is on letter, please enter correct disk letter\n";
+    cout << "This is not letter, please enter correct disk letter\n";
   }
 
   return 0;

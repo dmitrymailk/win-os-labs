@@ -18,6 +18,7 @@
     "__hash_table": "cpp",
     "__tuple": "cpp",
     "algorithm": "cpp",
-    "limits": "cpp"
+    "limits": "cpp",
+    "iostream": "cpp"
   }
 }

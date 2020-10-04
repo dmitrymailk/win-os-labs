@@ -49,9 +49,10 @@
 
 #include <iostream>
 #include <windows.h>
+#include <string>
 #define VirtualQueryERROR 0
 using namespace std;
-void checkstate(DWORD state)
+void state_info(DWORD state)
 {
   if (state == MEM_COMMIT)
     cout << "MEM_COMMIT" << endl;
@@ -60,7 +61,7 @@ void checkstate(DWORD state)
   else if (state == MEM_RESERVE)
     cout << "MEM_COMMIT" << endl;
   else
-    cout << "Unknown !?  " << state << "\n";
+    cout << "Unknown !?  " << state << endl;
 }
 void protect_info(DWORD protect_status)
 {
@@ -73,38 +74,43 @@ void protect_info(DWORD protect_status)
   else if (protect_status == 0)
     cout << "page is NULL" << endl;
   else
-    cout << "Unknown !?  " << protect_status << "\n";
+    cout << "Unknown !?  " << protect_status << endl;
 }
-class Lab_2
+void bold(string content, string bit = "", string color = "44")
 {
+  string start = "\033[3;";
+  string end = "\033[0m";
+  content += bit;
+  string new_str = start + color + ";30m" + content + end;
+  cout << new_str << "\n";
 };
 
 int main()
 {
-  // ------------- 1
-  cout << "task 1 \n";
-  bool errtest;
-  SYSTEM_INFO sinf;
+  // ##################### 1
+  bold("task 1", "", "43");
+
+  SYSTEM_INFO system_info;
   // https://docs.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsysteminfo
   // Получает информацию о текущей системе.
-  GetSystemInfo(&sinf);
-  DWORD pagesize = sinf.dwPageSize;
-  cout << "PAGE SIZE = " << pagesize << endl;
-  // cout << "ENTER THE NUMBER OF PAGES TO RESERVE: ";
-  int pages = 5;
+  GetSystemInfo(&system_info);
+  DWORD page_size = system_info.dwPageSize;
+  cout << "PAGE SIZE = " << page_size << endl;
+  // cout << "pages to reserve: ";
+  int total_pages = 5;
   // cin >> pages;
   // https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc
   // Резервирует, фиксирует или изменяет состояние области страниц в виртуальном адресном пространстве
   // вызывающего процесса. Память, выделяемая этой функцией, автоматически инициализируется нулем.
   // Если функция завершается успешно, возвращаемое значение - это базовый адрес выделенной области страниц.
   // Если функция не работает, возвращаемое значение - ПУСТО (NULL).
-  LPVOID p = VirtualAlloc(
+  LPVOID virtual_poiter = VirtualAlloc(
       // LPVOID lpAddress
       //Начальный адрес региона, который нужно выделить. Если этот параметр равен NULL, система определяет, где разместить область.
       NULL,
       // SIZE_T dwSize
       // Размер региона в байтах. Если параметр lpAddress равен NULL, это значение округляется до границы следующей страницы.
-      pages * pagesize,
+      total_pages * page_size,
       // DWORD  flAllocationType,
       // Резервирует диапазон виртуального адресного пространства процесса без выделения
       // реальной физической памяти в памяти или в файле подкачки на диске.
@@ -115,39 +121,39 @@ int main()
       // Если включено  Data Execution Prevention, попытка выполнить код в зафиксированной
       // области приводит к нарушению доступа.
       PAGE_READWRITE);
-  if (p == NULL)
+  if (virtual_poiter == NULL)
   {
     cout << "Error of reserving " << GetLastError();
     return 1;
   }
-  cout << "Address = " << &p << endl;
+  cout << "Address = " << &virtual_poiter << endl;
 
-  // ------------------ 2
-  cout << "task 2 \n";
-  cout << "ENTER THE NUMBER OF PAGES TO COMMIT: ";
-  int pagescommit;
-  cin >> pagescommit;
-  cout << "ENTER THE NUMBER OF PAGE TO START COMMITING: ";
-  int comstart;
-  cin >> comstart;
-  if (pagescommit > pages)
+  // ##################### 2
+  bold("task 2", "", "43");
+  cout << "AMOUNT COMMIT PAGES: ";
+  int commit_pages;
+  cin >> commit_pages;
+  cout << "NUMBER OF PAGE TO START COMMITING: ";
+  int commit_pages_start;
+  cin >> commit_pages_start;
+  if (commit_pages > total_pages)
   {
     cout << "ERROR: you can't commit pages more than you reserved!\n"
-         << "Reserved: " << pages << "\n"
-         << "Requested to commit: " << pagescommit;
+         << "Reserved: " << total_pages << "\n"
+         << "Requested to commit: " << commit_pages;
     return 1;
   }
-  if (pagescommit + comstart > pages)
+  if (commit_pages + commit_pages_start > total_pages)
   {
     cout << "ERROR: out of memory allocation!\n"
-         << "You try commit from page " << comstart
-         << " to page " << pagescommit + comstart
-         << " but you reserved only " << pages;
+         << "You try commit from page " << commit_pages_start
+         << " to page " << commit_pages + commit_pages_start
+         << " but you reserved only " << total_pages;
   }
 
-  LPVOID pc = VirtualAlloc(
-      &p + comstart * pagesize,
-      pagescommit * pagesize,
+  LPVOID virtual_poiter_commit = VirtualAlloc(
+      &virtual_poiter + commit_pages_start * page_size,
+      commit_pages * page_size,
       // MEM_COMMIT
       // Распределяет расходы на память (из общего размера памяти и файлов подкачки на диске)
       // для указанных зарезервированных страниц памяти. Функция также гарантирует,
@@ -155,19 +161,19 @@ int main()
       // нулевым. Фактические физические страницы не выделяются до тех пор, пока виртуальные адреса не будут доступны.
       MEM_COMMIT,
       PAGE_READWRITE);
-  if (pc == NULL)
+  if (virtual_poiter_commit == NULL)
   {
     cout << "Error of commiting " << GetLastError();
     return 1;
   }
-  cout << "Address of commited = " << &pc << endl;
-  // ------------- 3
-  cout << "task 3 \n";
+  cout << "Address of commited = " << &virtual_poiter_commit << endl;
+  // ##################### 3
+  bold("task 3", "", "43");
   const int n = 8;
   int arr[n] = {1, 2, 3, 4, 5, 6, 7, 8};
-  int *pc1 = (int *)pc;
-  errtest = memcpy(pc1, arr, n * sizeof(int));
-  if (!errtest)
+  int *virtual_poiter_commit_copy = (int *)virtual_poiter_commit;
+  bool is_success = memcpy(virtual_poiter_commit_copy, arr, n * sizeof(int));
+  if (is_success == 0)
   {
     cout << "Error executing memcpy_s " << GetLastError() << endl;
     return 1;
@@ -175,9 +181,10 @@ int main()
 
   cout << "Copied successfuly - \n";
   for (int i = 0; i < n; i++)
-    cout << pc1[i] << ", ";
-  // -------------- 4
-  cout << "\ntask 4 \n";
+    cout << virtual_poiter_commit_copy[i] << ", ";
+  cout << "\n";
+  // ##################### 4
+  bold("task 4", "", "43");
   MEMORY_BASIC_INFORMATION info;
   cout << "Info about commited memory: " << endl;
   //   SIZE_T VirtualQuery(
@@ -196,47 +203,47 @@ int main()
   // );
   // https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualquery
   size_t err = VirtualQuery(
-      &pc + comstart * pagesize,
+      &virtual_poiter_commit + commit_pages_start * page_size,
       &info,
       sizeof(info));
   if (err == VirtualQueryERROR)
   {
-    cout << "Error executing virtualquery " << GetLastError();
+    cout << "Error VirtualQueryERROR " << GetLastError();
     return 1;
   }
-  checkstate(info.State);
+  state_info(info.State);
   protect_info(info.Protect);
 
   cout << "Info about memory after commited: " << endl;
 
   err = VirtualQuery(
-      &pc + pagescommit * pagesize,
+      &virtual_poiter_commit + commit_pages * page_size,
       &info,
       sizeof(info));
   if (err == VirtualQueryERROR)
   {
-    cout << "Error executing virtualquery " << GetLastError();
+    cout << "Error VirtualQueryERROR " << GetLastError();
     return 1;
   }
-  checkstate(info.State);
+  state_info(info.State);
   protect_info(info.Protect);
-  // ---------------- 5
-  cout << "task 5 \n";
-  LPVOID pc2 = VirtualAlloc(
-      &p + (comstart + pagescommit) * pagesize,
-      pagesize,
+  // ##################### 5
+  bold("task 5", "", "43");
+  LPVOID virtual_poiter_commit_2 = VirtualAlloc(
+      &virtual_poiter + (commit_pages_start + commit_pages) * page_size,
+      page_size,
       MEM_COMMIT,
       PAGE_READONLY);
-  if (pc2 == NULL)
+  if (virtual_poiter_commit_2 == NULL)
   {
     cout << "Error of commiting 2 " << GetLastError();
     return 1;
   }
-  cout << "Address of commited 2 = " << pc2 << endl;
+  cout << "Address of commited 2 = " << virtual_poiter_commit_2 << endl;
 
   MEMORY_BASIC_INFORMATION info2;
   err = VirtualQuery(
-      &p + (comstart + pagescommit) * pagesize,
+      &virtual_poiter + (commit_pages_start + commit_pages) * page_size,
       &info2,
       sizeof(info2));
 
@@ -245,14 +252,15 @@ int main()
     cout << "Error executing virtualquery 2 " << GetLastError();
     return 1;
   }
-  checkstate(info2.State);
+  state_info(info2.State);
   protect_info(info2.Protect);
-  // ------------- 6
+  // ##################### 6
+  bold("task 6", "", "43");
   SIZE_T dwSize;
   cout << "Amount pages to return: ";
   cin >> dwSize;
   cout << "number page for deccommiting: ";
-  cin >> comstart;
+  cin >> commit_pages_start;
   //   BOOL VirtualFree(
   //   LPVOID lpAddress, Указатель на базовый адрес области освобождаемых страниц.
   //   SIZE_T dwSize, Размер освобождаемой области памяти в байтах.
@@ -262,26 +270,26 @@ int main()
   // Если функция не работает, возвращается значение 0 (ноль). Чтобы получить
   // расширенную информацию об ошибке, вызовите GetLastError.
   // https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualfree
-  BOOL is_correct = VirtualFree(&p + comstart * pagesize, dwSize * pagesize, MEM_DECOMMIT);
+  BOOL is_correct = VirtualFree(&virtual_poiter + commit_pages_start * page_size, dwSize * page_size, MEM_DECOMMIT);
   if (is_correct == 0)
   {
     cout << "ERROR VirtualFree " << GetLastError();
     return 1;
   }
 
-  cout << "ADDRESS " << &p + comstart * pagesize << endl;
+  cout << "ADDRESS " << &virtual_poiter + commit_pages_start * page_size << endl;
   MEMORY_BASIC_INFORMATION info3;
-  err = VirtualQuery(&p + comstart * pagesize, &info3, sizeof(info3));
+  err = VirtualQuery(&virtual_poiter + commit_pages_start * page_size, &info3, sizeof(info3));
   if (err == VirtualQueryERROR)
   {
     cout << "VirtualQueryERROR " << GetLastError();
     return 1;
   }
-  checkstate(info3.State);
+  state_info(info3.State);
   protect_info(info3.Protect);
 
   // очищаем память выделенную с самого начала
-  VirtualFree(&p, 0, MEM_RELEASE);
+  VirtualFree(&virtual_poiter, 0, MEM_RELEASE);
 
   return 0;
 }

@@ -59,7 +59,7 @@ void state_info(DWORD state)
   else if (state == MEM_FREE)
     cout << "MEM_FREE" << endl;
   else if (state == MEM_RESERVE)
-    cout << "MEM_COMMIT" << endl;
+    cout << "MEM_RESERVE" << endl;
   else
     cout << "Unknown !?  " << state << endl;
 }
@@ -126,7 +126,7 @@ int main()
     cout << "Error of reserving " << GetLastError();
     return 1;
   }
-  cout << "Address = " << &virtual_poiter << endl;
+  cout << "Address = " << virtual_poiter << endl;
 
   // ##################### 2
   bold("task 2", "", "43");
@@ -152,7 +152,7 @@ int main()
   }
 
   LPVOID virtual_poiter_commit = VirtualAlloc(
-      &virtual_poiter + commit_pages_start * page_size,
+      (char *)virtual_poiter + commit_pages_start * page_size,
       commit_pages * page_size,
       // MEM_COMMIT
       // Распределяет расходы на память (из общего размера памяти и файлов подкачки на диске)
@@ -166,7 +166,7 @@ int main()
     cout << "Error of commiting " << GetLastError();
     return 1;
   }
-  cout << "Address of commited = " << &virtual_poiter_commit << endl;
+  cout << "Address of commited = " << virtual_poiter_commit << endl;
   // ##################### 3
   bold("task 3", "", "43");
   const int n = 8;
@@ -203,7 +203,7 @@ int main()
   // );
   // https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualquery
   size_t err = VirtualQuery(
-      &virtual_poiter_commit + commit_pages_start * page_size,
+      (char *)virtual_poiter_commit,
       &info,
       sizeof(info));
   if (err == VirtualQueryERROR)
@@ -217,7 +217,7 @@ int main()
   cout << "Info about memory after commited: " << endl;
 
   err = VirtualQuery(
-      &virtual_poiter_commit + commit_pages * page_size,
+      (char *)virtual_poiter_commit + commit_pages * page_size,
       &info,
       sizeof(info));
   if (err == VirtualQueryERROR)
@@ -230,7 +230,7 @@ int main()
   // ##################### 5
   bold("task 5", "", "43");
   LPVOID virtual_poiter_commit_2 = VirtualAlloc(
-      &virtual_poiter + (commit_pages_start + commit_pages) * page_size,
+      (char *)virtual_poiter_commit,
       page_size,
       MEM_COMMIT,
       PAGE_READONLY);
@@ -243,7 +243,7 @@ int main()
 
   MEMORY_BASIC_INFORMATION info2;
   err = VirtualQuery(
-      &virtual_poiter + (commit_pages_start + commit_pages) * page_size,
+      (char *)virtual_poiter_commit,
       &info2,
       sizeof(info2));
 
@@ -270,16 +270,16 @@ int main()
   // Если функция не работает, возвращается значение 0 (ноль). Чтобы получить
   // расширенную информацию об ошибке, вызовите GetLastError.
   // https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualfree
-  BOOL is_correct = VirtualFree(&virtual_poiter + commit_pages_start * page_size, dwSize * page_size, MEM_DECOMMIT);
+  BOOL is_correct = VirtualFree((char *)virtual_poiter_commit, dwSize * page_size, MEM_DECOMMIT);
   if (is_correct == 0)
   {
     cout << "ERROR VirtualFree " << GetLastError();
     return 1;
   }
 
-  cout << "ADDRESS " << &virtual_poiter + commit_pages_start * page_size << endl;
+  cout << "ADDRESS " << virtual_poiter_commit << endl;
   MEMORY_BASIC_INFORMATION info3;
-  err = VirtualQuery(&virtual_poiter + commit_pages_start * page_size, &info3, sizeof(info3));
+  err = VirtualQuery((char *)virtual_poiter_commit, &info3, sizeof(info3));
   if (err == VirtualQueryERROR)
   {
     cout << "VirtualQueryERROR " << GetLastError();
@@ -289,7 +289,16 @@ int main()
   protect_info(info3.Protect);
 
   // очищаем память выделенную с самого начала
-  VirtualFree(&virtual_poiter, 0, MEM_RELEASE);
+  MEMORY_BASIC_INFORMATION info4;
+  VirtualFree((char *)virtual_poiter, 0, MEM_RELEASE);
+  err = VirtualQuery((char *)virtual_poiter, &info4, sizeof(info4));
+  if (err == VirtualQueryERROR)
+  {
+    cout << "VirtualQueryERROR " << GetLastError();
+    return 1;
+  }
+  state_info(info4.State);
+  protect_info(info4.Protect);
 
   return 0;
 }

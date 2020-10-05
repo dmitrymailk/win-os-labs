@@ -35,7 +35,7 @@ int main()
   // http://vsokovikov.narod.ru/New_MSDN_API/Menage_files/fn_createfile.htm
   // получение открытого дескриптора входного файла
   HANDLE input_file = CreateFile(
-      LPCSTR(input_file_name), // имя файла
+      (LPCSTR)input_file_name, // имя файла
       GENERIC_READ,            // режим доступа
       FILE_SHARE_READ,         // совместный доступ
       NULL,                    // SD (дескр. защиты)

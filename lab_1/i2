@@ -1,0 +1,35 @@
+hFile
+
+A handle to the file or I/O device (for example, a file, file stream, physical disk, volume, console buffer, tape drive, socket, communications resource, mailslot, or pipe).
+
+The hFile parameter must have been created with the write access. For more information, see Generic Access Rights and File Security and Access Rights.
+
+For asynchronous write operations, hFile can be any handle opened with the CreateFile function using the FILE_FLAG_OVERLAPPED flag or a socket handle returned by the socket or accept function.
+
+lpBuffer
+
+A pointer to the buffer containing the data to be written to the file or device.
+
+This buffer must remain valid for the duration of the write operation. The caller must not use this buffer until the write operation is completed.
+
+nNumberOfBytesToWrite
+
+The number of bytes to be written to the file or device.
+
+A value of zero specifies a null write operation. The behavior of a null write operation depends on the underlying file system or communications technology.
+
+Windows Server 2003 and Windows XP:  Pipe write operations across a network are limited in size per write. The amount varies per platform. For x86 platforms it's 63.97 MB. For x64 platforms it's 31.97 MB. For Itanium it's 63.95 MB. For more information regarding pipes, see the Remarks section.
+
+lpNumberOfBytesWritten
+
+A pointer to the variable that receives the number of bytes written when using a synchronous hFile parameter. WriteFile sets this value to zero before doing any work or error checking. Use NULL for this parameter if this is an asynchronous operation to avoid potentially erroneous results.
+
+This parameter can be NULL only when the lpOverlapped parameter is not NULL.
+
+For more information, see the Remarks section.
+
+lpOverlapped
+
+A pointer to an OVERLAPPED structure is required if the hFile parameter was opened with FILE_FLAG_OVERLAPPED, otherwise this parameter can be NULL.
+
+For an hFile that supports byte offsets, if you use this parameter you must specify a byte offset at which to start writing to the file or device. This offset is specified by setting the Offset and OffsetHigh members of the OVERLAPPED structure. For an hFile that does not support byte offsets, Offset and OffsetHigh are ignored.

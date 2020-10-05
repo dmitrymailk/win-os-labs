@@ -1,0 +1,5 @@
+ handle to the file or I/O device (for example, a file, file stream, physical disk, volume, console buffer, tape drive, socket, communications resource, mailslot, or pipe).
+
+The hFile parameter must have been created with the write access. For more information, see Generic Access Rights and File Security and Access Rights.
+
+For asynchronous write operations, hFile can be any handle opened with the CreateFile function using the FILE_FLAG_OVERLAPPED flag or a socket handle returned by the soc

@@ -4,20 +4,20 @@
 #include <algorithm>
 using namespace std;
 
-struct print_params
+struct print_params // специальный объект с параметрами для удобства
 {
   CRITICAL_SECTION critical_section;
-  HANDLE mutex;
+  HANDLE *mutex;
   int is_async;
   int has_critical_section;
   int has_mutex;
 };
 
-DWORD WINAPI thread_1(LPVOID _params)
+DWORD WINAPI thread_1(LPVOID _params) // создаем функцию для вызова
 {
-  string word = "LEFT";
-  int number_thread = 0;
-  print_params &params = *(print_params *)_params;
+  string word = "LEFT";                            // тестовое слово
+  int number_thread = 0;                           // номер потока для наглядности
+  print_params &params = *(print_params *)_params; // получение структуры с параметрами
 
   if (!(params.is_async))
     for (int i = 0; i < 10; i++)
@@ -28,24 +28,36 @@ DWORD WINAPI thread_1(LPVOID _params)
   else
   {
     if ((params.has_critical_section))
-      EnterCriticalSection(&(params.critical_section));
+      EnterCriticalSection(&(params.critical_section)); // синхронизируем потоки если используем
+    // для этого CRITICAL_SECTION грубо говоря входим в
+    // критическую секцию и выполняем ее до тех пор пока не вызовем функцию  LeaveCriticalSection
     if (params.has_mutex)
-      WaitForSingleObject(&(params.mutex), INFINITE);
 
-    for_each(word.begin(), word.end(), [&number_thread](char letter) {
+      WaitForSingleObject(&(params.mutex), INFINITE);
+    // синхронизируем потоки если используем для этого mutex
+    // входим в режим ожидания пока специальная функция к примеру ReleaseMutex не сообщит о завершении
+    // или не истечет время ожидания в нашем случае мы ждем бесконечно долго (лучше конечно секунды 2 поставить) но разницы никакой
+
+    for_each(word.begin(), word.end(), [&number_thread](char letter) { // перебираем по буквам тестовое слово
       cout << letter
            << " => "
            << number_thread
            << "\n";
-      Sleep(100);
+      Sleep(100); // приостанавливаем работу на 100 мс
     });
 
     if ((params.has_critical_section))
-      LeaveCriticalSection(&(params.critical_section));
+      LeaveCriticalSection(&(params.critical_section)); // завершаем выполнение критического раздела
     if (params.has_mutex)
-      ReleaseMutex(&(params.mutex));
+      if (ReleaseMutex(&(params.mutex)))
+      {
+        cout << "Error "
+             << GetLastError()
+             << "\n";
+        return 0;
+      }
 
-    ExitThread(0);
+    ExitThread(0); // выходим из треда
   }
 }
 
@@ -67,6 +79,9 @@ DWORD WINAPI thread_2(LPVOID _params)
     if ((params.has_critical_section))
       EnterCriticalSection(&(params.critical_section));
 
+    if (params.has_mutex)
+      WaitForSingleObject(&(params.mutex), INFINITE);
+
     for_each(word.begin(), word.end(), [&number_thread](char letter) {
       cout << letter
            << " => "
@@ -77,7 +92,14 @@ DWORD WINAPI thread_2(LPVOID _params)
 
     if ((params.has_critical_section))
       LeaveCriticalSection(&(params.critical_section));
-
+    if (params.has_mutex)
+      if (ReleaseMutex(&(params.mutex)))
+      {
+        cout << "Error "
+             << GetLastError()
+             << "\n";
+        return 0;
+      }
     ExitThread(0);
   }
 }
@@ -105,12 +127,12 @@ int main()
     params.is_async = 0;
     params.has_critical_section = 0;
 
-    HANDLE thread_1_pointer = CreateThread(NULL,
-                                           0,
-                                           thread_1,
-                                           &params,
-                                           0,
-                                           NULL);
+    HANDLE thread_1_pointer = CreateThread(NULL,     // атрибуты безопасности которые не наследуются в данном случае
+                                           0,        // размер выделяемого стака в данном случае определяется системой
+                                           thread_1, // ссылка  на нужную функцию
+                                           &params,  // объект который передается в функцию
+                                           0,        // данный флаг значит что тред запускается сразу после создания
+                                           NULL);    // переменная которая получае ссылку на идентификатор треда в данном случае мы не получаем ее потому что не надо :)
     if (!thread_1_pointer)
     {
 
@@ -152,10 +174,11 @@ int main()
       */
     DWORD object_handles = 2;
 
-    if (WaitForMultipleObjects(object_handles,
-                               threads,
-                               TRUE,
-                               INFINITE) != WAIT_OBJECT_0)
+    if (WaitForMultipleObjects(object_handles, // количество тредов
+                               threads,        // массив тредов
+                               TRUE,           // ожидаем ли мы все треды или достаточно какого-то одного
+                               INFINITE        // ждем сигнала ОЧЕНЬ долго
+                               ) != WAIT_OBJECT_0)
     {
       cout << "Error"
            << GetLastError()
@@ -167,6 +190,8 @@ int main()
   if (tasks[1])
   {
     params.is_async = 1;
+    params.has_mutex = 0;
+    params.has_critical_section = 0;
     HANDLE thread_1_pointer = CreateThread(NULL,
                                            0,
                                            thread_1,
@@ -217,6 +242,7 @@ int main()
     // https://www.codeproject.com/Questions/1252310/Nightmare-getting-simple-threading-working-Cpluspl
     params.is_async = 1;
     params.has_critical_section = 1;
+    params.has_mutex = 0;
 
     InitializeCriticalSection(&params.critical_section);
 
@@ -263,11 +289,14 @@ int main()
            << "\n";
       return 0;
     }
+    DeleteCriticalSection(&params.critical_section);
   }
   // TASK_4
   if (tasks[3])
   {
     params.has_mutex = 1;
+    params.is_async = 1;
+    params.has_critical_section = 0;
     HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
     if (!mutex)
     {
@@ -277,7 +306,7 @@ int main()
       return 0;
     }
 
-    params.mutex = mutex;
+    params.mutex = &mutex;
 
     HANDLE thread_1_pointer = CreateThread(NULL,
                                            0,

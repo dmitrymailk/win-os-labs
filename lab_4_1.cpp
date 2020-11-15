@@ -3,12 +3,6 @@
 #include <conio.h>
 using namespace std;
 
-#define R_KEY 0x52
-#define S_KEY 0x53
-#define T_KEY 0x54
-#define Q_KEY 0x51
-#define PRESS_CODE -32767 // это то число которое возвращает функция GetAsyncKeyState если нажата нужная клавиша
-
 int main()
 {
 
@@ -104,15 +98,15 @@ int main()
 
   // https://github.com/nobled/gpgme/blob/master/src/w32-io.c#L1117
   // https://docs.microsoft.com/en-us/windows/win32/procthread/process-creation-flags
-  // int cr_flags = (CREATE_NEW_CONSOLE | GetPriorityClass(GetCurrentProcess()));
+  // int cr_flags = (CREATE_DEFAULT_ERROR_MODE | GetPriorityClass(GetCurrentProcess()));
   // cr_flags |= CREATE_SUSPENDED;
   // cr_flags |= DETACHED_PROCESS;
 
   // https://social.msdn.microsoft.com/Forums/en-US/22c10140-a502-4aa1-98d3-3607b8b573e8/launching-mstsc-using-process-on-64bit-windows-in-wpf-application?forum=wpf
-  PVOID OldValue = NULL;
-  BOOL result = Wow64DisableWow64FsRedirection(&OldValue);
-  if (!result)
-    cout << "ERROR DISABLE" << GetLastError() << "\n";
+  // PVOID OldValue = NULL;
+  // BOOL result = Wow64DisableWow64FsRedirection(&OldValue);
+  // if (!result)
+  //   cout << "ERROR DISABLE" << GetLastError() << "\n";
 
   // Опытным путем выяснилось что на виндовс 10 с современными программами не работают SuspendThread, ResumeThread, TerminateProcess
   // он либо совсем не выдает ошибок, либо мне кажется что это связано с правами доступа или с тем что они х64
@@ -137,7 +131,7 @@ int main()
 
   );
 
-  if (is_correct_start)
+  if (is_correct_start) // если запуск без ошибок то выводим ID процесса
   {
     cout << "Process ID => "
          << process_info.dwProcessId
@@ -152,14 +146,14 @@ int main()
   }
 
   int char_key;
-  cout << "T => Terminate\n"
-       << "R => Resume\n"
-       << "S => Suspend\n"
+  cout << "t => Terminate\n"
+       << "r => Resume\n"
+       << "s => Suspend\n"
        << ". => close\n";
   do
   {
 
-    char_key = getchar();
+    char_key = getchar(); // считываем необходимую нам клавишу
     switch (char_key)
     {
     case 's':
@@ -194,5 +188,5 @@ int main()
     putchar(char_key);
   } while (char_key != '.');
 
-    return 0;
+  return 0;
 }

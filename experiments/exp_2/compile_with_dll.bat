@@ -1,0 +1,1 @@
+g++ -c example_exe.cpp && g++ -o example_exe.exe example_exe.o -L. -lexample_dll

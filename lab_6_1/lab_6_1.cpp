@@ -1,5 +1,6 @@
 #include "lab_6_1_dll.h"
 using namespace std;
+// В ДАННОМ ФАЙЛЕ НИЧЕГО НЕ ИЗМЕНИЛОСЬ С 5 ЛАБЫ
 
 int main()
 {

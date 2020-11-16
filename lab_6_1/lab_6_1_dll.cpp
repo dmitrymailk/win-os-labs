@@ -1,6 +1,7 @@
 #include "lab_6_1_dll.h"
 using namespace std;
 
+// ничего не изменилось с 5 лабы
 DWORD WINAPI thread_1(LPVOID _params)
 {
   string word = "LEFT";

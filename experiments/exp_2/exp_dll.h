@@ -39,16 +39,16 @@
 // #endif // EXAMPLE_DLL_H
 
 #include <windows.h>
- 
-#define EOF (-1)
- 
-#ifdef __cplusplus    // If used by C++ code, 
-extern "C" {          // we need to export the C interface
-#endif
- 
-__declspec(dllexport) int __cdecl myPuts(LPWSTR lpszMsg);
 
- 
+#define EOF (-1)
+
+#ifdef __cplusplus // If used by C++ code,
+extern "C"
+{ // we need to export the C interface
+#endif
+
+  __declspec(dllexport) int __cdecl myPuts(LPWSTR lpszMsg);
+
 #ifdef __cplusplus
 }
 #endif

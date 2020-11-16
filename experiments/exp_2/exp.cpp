@@ -3,8 +3,8 @@
 
 int main(void)
 {
-  hello("World");
-  printf("%d\n", Double(333));
+  // hello("World");
+  // printf("%d\n", Double(333));
   CppFunc();
 
   MyClass a;

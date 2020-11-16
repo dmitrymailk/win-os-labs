@@ -1,1 +1,2 @@
-g++ -c -DBUILDING_EXAMPLE_DLL example_dll.cpp && g++ -shared -o example_dll.dll example_dll.o -Wl,--out-implib,libexample_dll.a
+set program_name=exp
+g++ -c -DBUILDING_EXAMPLE_DLL %program_name%_dll.cpp && g++ -shared -o %program_name%_dll.dll %program_name%_dll.o -Wl,--out-implib,%program_name%_dll.a && del %program_name%_dll.a && del %program_name%_dll.o

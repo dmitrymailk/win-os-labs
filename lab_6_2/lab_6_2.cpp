@@ -99,7 +99,7 @@ int main()
     }
     DeleteCriticalSection(&params.critical_section);
   }
-  if (!FreeLibrary(hinstLib))
+  if (!FreeLibrary(hinstLib)) // освобождаем память
   {
     cout << "Error close library "
          << GetLastError()

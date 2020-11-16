@@ -1,6 +1,7 @@
 #include "lab_6_2_dll.h"
 using namespace std;
 
+// ничего не изменилось после 5 лабы
 struct print_params
 {
   CRITICAL_SECTION critical_section;

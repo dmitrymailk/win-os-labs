@@ -99,6 +99,13 @@ int main()
     }
     DeleteCriticalSection(&params.critical_section);
   }
+  if (!FreeLibrary(hinstLib))
+  {
+    cout << "Error close library "
+         << GetLastError()
+         << "\n";
+    return 0;
+  }
   cout << "END\n";
   return 0;
 }
